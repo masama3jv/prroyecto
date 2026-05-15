@@ -1,0 +1,17 @@
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ecommerce';
+  try {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('MongoDB connectat');
+  } catch (err) {
+    console.error('Error connectant a MongoDB:', err.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
