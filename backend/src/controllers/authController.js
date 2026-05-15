@@ -21,10 +21,16 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user) {
+      req.log.warn({ email }, 'Invalid login attempt');
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      req.log.warn({ email }, 'Invalid login attempt');
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '15m' });
     const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -32,8 +38,14 @@ exports.login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
+    req.log.info({
+      userId: user._id,
+      email: user.email
+    }, 'User logged in successfully');
+
     res.json({ token, refreshToken, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
+    req.log.error({ error: error.message }, 'Login failed');
     res.status(500).json({ message: error.message });
   }
 };
@@ -66,6 +78,9 @@ exports.logout = async (req, res) => {
     if (user) {
       user.refreshToken = null;
       await user.save();
+      req.log.info({
+        userId: user._id
+      }, 'User logged out');
     }
     
     res.json({ message: 'Logged out successfully' });

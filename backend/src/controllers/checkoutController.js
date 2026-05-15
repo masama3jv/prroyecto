@@ -47,9 +47,20 @@ exports.createSession = async (req, res) => {
     order.stripeSessionId = session.id;
     await order.save();
 
+    req.log.info({
+      orderId: order._id,
+      userId: req.user?.id || null,
+      total: order.total
+    }, 'Order created');
+
     res.json({ sessionId: session.id, url: session.url });
 
   } catch (error) {
+    req.log.error({
+      orderId: req.body?.orderId,
+      userId: req.user?.id || null,
+      error: error.message
+    }, 'Payment failed');
     console.error("Error Stripe Session:", error);
     res.status(500).json({ message: error.message || "Error al processar el pagament" });
   }
@@ -85,8 +96,10 @@ exports.webhook = async (req, res) => {
       if (order) {
         order.status = 'paid';
         await order.save();
+        req.log.info({ orderId: order._id }, 'Payment confirmed');
         console.log(`Order ${orderId} successfully paid!`);
       } else {
+        req.log.warn({ orderId }, 'Order not found for payment session');
         console.warn(`Order not found for session: ${session.id}`);
       }
     } catch (err) {

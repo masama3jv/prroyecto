@@ -1,11 +1,18 @@
 const Product = require('../models/Product');
 
-exports.getProducts = async (req, res) => {
+exports.getProducts = async (req, res, next) => {
   try {
+    req.log.info({
+      requestId: req.requestId
+    }, 'Getting product list');
     const products = await Product.find();
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    req.log.error({
+      requestId: req.requestId,
+      error: error.message
+    }, 'Error getting products');
+    next(error);
   }
 };
 
