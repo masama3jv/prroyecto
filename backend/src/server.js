@@ -38,6 +38,11 @@ app.use("/api/checkout", require("./routes/checkoutRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api", require("./routes/healthRoutes"));
 
+// Ruta arrel perquè no surti "Cannot GET /"
+app.get('/', (req, res) => {
+  res.json({ status: 'online', message: 'La API del Backend funciona correctament!' });
+});
+
 // Ruta temporal per simulació d'error
 app.get('/api/debug/error', (req, res, next) => {
   next(new Error('Error de prova per observabilitat'));

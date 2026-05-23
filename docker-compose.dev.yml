@@ -4,7 +4,7 @@ services:
   mongo:
     image: mongo:6
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
@@ -13,12 +13,12 @@ services:
 
   backend:
     build:
-      context: ./backend/api
+      context: ./backend
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     volumes:
-      - ./backend/api:/app
+      - ./backend:/app
       - /app/node_modules
     environment:
       - MONGO_URI=${MONGO_URI}
