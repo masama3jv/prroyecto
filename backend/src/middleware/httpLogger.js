@@ -8,7 +8,7 @@ const httpLogger = pinoHttp({
   customProps: function (req, res) {
     return {
       requestId: req.requestId,
-      userId: req.user?.userId || null
+      userId: req.user?.id || null
     };
   },
   customLogLevel: function (req, res, err) {

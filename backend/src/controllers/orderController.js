@@ -38,9 +38,19 @@ exports.createOrder = async (req, res) => {
     });
 
     await order.save();
-    
+
+    req.log.info({
+      orderId: order._id,
+      userId: req.user.id,
+      total: order.total
+    }, 'Order created');
+
     res.status(201).json(order);
   } catch (error) {
+    req.log.error({
+      userId: req.user?.id || null,
+      error: error.message
+    }, 'Error creating order');
     res.status(500).json({ message: error.message });
   }
 };
@@ -50,6 +60,10 @@ exports.getOrders = async (req, res) => {
     const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
+    req.log.error({
+      userId: req.user?.id || null,
+      error: error.message
+    }, 'Error getting user orders');
     res.status(500).json({ message: error.message });
   }
 };
@@ -61,6 +75,10 @@ exports.getAllOrders = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
+    req.log.error({
+      userId: req.user?.id || null,
+      error: error.message
+    }, 'Error getting all orders');
     res.status(500).json({ message: error.message });
   }
 };

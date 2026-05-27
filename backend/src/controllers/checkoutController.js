@@ -51,7 +51,7 @@ exports.createSession = async (req, res) => {
       orderId: order._id,
       userId: req.user?.id || null,
       total: order.total
-    }, 'Order created');
+    }, 'Stripe checkout session started');
 
     res.json({ sessionId: session.id, url: session.url });
 
@@ -96,14 +96,18 @@ exports.webhook = async (req, res) => {
       if (order) {
         order.status = 'paid';
         await order.save();
-        req.log.info({ orderId: order._id }, 'Payment confirmed');
-        console.log(`Order ${orderId} successfully paid!`);
+        req.log.info({
+          orderId: order._id,
+          stripeSessionId: session.id
+        }, 'Payment confirmed');
       } else {
         req.log.warn({ orderId }, 'Order not found for payment session');
-        console.warn(`Order not found for session: ${session.id}`);
       }
     } catch (err) {
-      console.error(`Error updating order status: ${err.message}`);
+      req.log.error({
+        orderId,
+        error: err.message
+      }, 'Error updating order status after payment');
     }
   }
 
